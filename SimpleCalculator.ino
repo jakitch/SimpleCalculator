@@ -44,7 +44,7 @@ double result = 0.0;
 // 0 = Collecting 1st operand
 // 1 = Collecting 2nd operand
 // 2 = Displaying result/error
-// 3 = Finished
+// 3 = Wait for reset
 byte UIState = 0;
 
 // ------------------------------------------------------------------------------
@@ -59,8 +59,6 @@ void setup() {
   printTitle();
   display.setCursor(0, body1Y);
   display.display();
-
-  Serial.begin(9600);
 }
 
 void loop() {
@@ -72,6 +70,9 @@ void loop() {
   }
   else if(UIState == 2) {
     displayResult();
+  }
+  else if(UIState == 3) {
+    waitForReset();
   }
 }
 
@@ -92,7 +93,7 @@ void clearAll() {
 void collectOperand1() {
   char key = keypad.getKey();
   if (key) {
-    if (key == '+' || key == '-' || key == '*' || key == '/') {
+    if (key == '+' || key == '-' || key == '*' || key == '/' && operand1.length() > 0) {
         // Enter "Collecting 2nd operand" state
         display.setCursor(0, body2Y);
         display.print(key);
@@ -110,7 +111,6 @@ void collectOperand1() {
     else if(operand1.length() < 16) {
       display.print(key);
       operand1 += key;
-      Serial.println(operand1);
     }
     display.display();
   }
@@ -139,7 +139,7 @@ void collectOperand2() {
       display.setCursor(0, body3Y);
       operand2 = "";
     }
-    else if(key == 'E') {
+    else if(key == 'E' && operand2.length() > 0) {
       // Go to "Displaying result/error" state
       display.setCursor(0, body4Y);
       display.print("=");
@@ -162,7 +162,6 @@ void displayResult() {
     display.print("Cannot divide by zero");
   }
   else {
-    operand1 += ".0001";
     switch (op) {
       case '+':
         result = operand1.toDouble() + operand2.toDouble();
@@ -177,9 +176,25 @@ void displayResult() {
         result = operand1.toDouble() / operand2.toDouble();
         break;     
     }
-    display.print(operand1.toDouble()); 
   }
+  display.print(result);
   display.display();
-  // Move to "Finished" state
+
+  // Move to "Wait for reset" state
   UIState = 3;
+}
+
+void waitForReset() {
+  char key = keypad.getKey();
+  if(key) {
+    if(key == 'C' || key == 'E') {
+      clearAll();
+      operand1 = "";
+      operand2 = "";
+      op = "n";
+      result = 0.0;
+      // Move to  "Collecting 1st operand" state
+      UIState = 0;
+    }
+  }
 }
