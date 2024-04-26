@@ -25,6 +25,15 @@ Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 #define OLED_RESET 16
 ArducamSSD1306 display(OLED_RESET);
 
+// ---LED Constants--------------------------------------------------------------
+
+const byte whiteLED = 52;
+const byte yellowLED = 50;
+const byte blueLED = 48;
+const byte greenLED = 46;
+const byte redLED = 44;
+
+
 // ---General Variables & Constants----------------------------------------------
 
 const byte title1Y = 0;
@@ -59,6 +68,21 @@ void setup() {
   printTitle();
   display.setCursor(0, body1Y);
   display.display();
+
+  // Configure LEDs
+  pinMode(whiteLED, OUTPUT);
+  pinMode(yellowLED, OUTPUT);
+  pinMode(blueLED, OUTPUT);
+  pinMode(greenLED, OUTPUT);
+  pinMode(redLED, OUTPUT);
+
+  // Start in "Collecting 1st operand" state
+  digitalWrite(whiteLED, HIGH);
+  digitalWrite(yellowLED, LOW);
+  digitalWrite(blueLED, LOW);
+  digitalWrite(greenLED, LOW);
+  digitalWrite(redLED, LOW);
+
 }
 
 void loop() {
@@ -100,6 +124,8 @@ void collectOperand1() {
         display.setCursor(0, body3Y);
         op = key;
         UIState = 1;
+        digitalWrite(whiteLED, LOW);
+        digitalWrite(yellowLED, HIGH);
     }
     else if(key == 'C') {
       clearAll();
@@ -129,6 +155,8 @@ void collectOperand2() {
       op = "n";
       display.print(operand1);
       UIState = 0;
+      digitalWrite(yellowLED, LOW);
+      digitalWrite(whiteLED, HIGH);
     }
     else if(key == 'C' && operand2.length() > 0) {
       // Clear operand 2
@@ -138,6 +166,9 @@ void collectOperand2() {
       display.print(op);
       display.setCursor(0, body3Y);
       operand2 = "";
+      digitalWrite(blueLED, LOW);
+      digitalWrite(yellowLED, HIGH);
+
     }
     else if(key == 'E' && operand2.length() > 0) {
       // Go to "Displaying result/error" state
@@ -147,6 +178,11 @@ void collectOperand2() {
       UIState = 2;
     }
     else if(operand2.length() < 16) {
+      if(operand2.length() == 0) {
+        // Update LEDs
+        digitalWrite(yellowLED, LOW);
+        digitalWrite(blueLED, HIGH);
+      }
       display.print(key);
       operand2 += key;
     }
@@ -160,6 +196,8 @@ void displayResult() {
     display.print("ERROR");
     display.setCursor(0, body6Y);
     display.print("Cannot divide by zero");
+    digitalWrite(blueLED, LOW);
+    digitalWrite(redLED, HIGH);
   }
   else {
     switch (op) {
@@ -176,8 +214,11 @@ void displayResult() {
         result = operand1.toDouble() / operand2.toDouble();
         break;     
     }
+    display.print(result);
+    digitalWrite(blueLED, LOW);
+    digitalWrite(greenLED, HIGH);
   }
-  display.print(result);
+  
   display.display();
 
   // Move to "Wait for reset" state
@@ -195,6 +236,9 @@ void waitForReset() {
       result = 0.0;
       // Move to  "Collecting 1st operand" state
       UIState = 0;
+      digitalWrite(greenLED, LOW);
+      digitalWrite(redLED, LOW);
+      digitalWrite(whiteLED, HIGH);
     }
   }
 }
