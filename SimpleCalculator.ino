@@ -1,7 +1,6 @@
 #include <ArducamSSD1306.h>
 #include <Keypad.h>
 #include <stdlib.h>
-#include <math.h>
 
 
 // ---Keypad Variables-----------------------------------------------------------
