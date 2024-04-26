@@ -1,3 +1,5 @@
+// Sketch created by Jared Kitchen
+
 #include <ArducamSSD1306.h>
 #include <Keypad.h>
 #include <stdlib.h>
